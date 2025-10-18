@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+  </head>
+  <body>
+    <div class="wrap">
+<header>
+<div class="logo">XI</div>
+<div>
+<h1>Jadwal Pelajaran — XI RPL</h1>
+<p class="lead">Lihat jadwal tiap hari. Bisa ditambah & diedit langsung di sini.</p>
+</div>
+</header>
+
+<!-- v3 -->
+<div class="controls card">
+<div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+<div class="days" id="daysContainer"></div>
+<div class="small" id="dateNow"></div>
+</div>
+</div>
+
+<!--v2  -->
+<div class="layout">
+<main>
+<div class="card">
+<h3 style="margin:0 0 12px 0">Jadwal Hari ini: <span id="hariJudul" style="color:var(--accent)"></span></h3>
+<div id="scheduleList" class="schedule-list"></div>
+</div>
+
+<!--v1  -->
+<footer>
+Dibuat untuk sekolah — mudah & responsive. Klik matahari untuk memilih hari otomatis.
+</footer>
+</div>
+
+      <script>
+e.preventDefault();
+const h = hariSelect.value;
+const newItem = {mapel: mapelInput.value.trim(), guru: guruInput.value.trim(), waktu: waktuInput.value.trim()};
+if(!scheduleData[h]) scheduleData[h]=[];
+scheduleData[h].push(newItem);
+mapelInput.value='';guruInput.value='';waktuInput.value='';
+activeDay = h;
+renderAll();
+});
+
+
+document.getElementById('clearBtn').addEventListener('click', ()=>{
+if(confirm('Reset semua jadwal ke default contoh?')){
+scheduleData = JSON.parse(JSON.stringify(defaultSchedule));
+renderAll();
+}
+});
+
+
+function onEdit(e){
+const idx = Number(e.currentTarget.dataset.i);
+const item = scheduleData[activeDay][idx];
+mapelInput.value = item.mapel; guruInput.value = item.guru; waktuInput.value = item.waktu;
+// remove old item
+scheduleData[activeDay].splice(idx,1);
+renderAll();
+}
+
+
+function onDelete(e){
+const idx = Number(e.currentTarget.dataset.i);
+if(confirm('Hapus jadwal ini?')){
+scheduleData[activeDay].splice(idx,1);
+renderAll();
+}
+}
+
+
+// export/import
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+const blob = new Blob([JSON.stringify(scheduleData, null, 2)],{type:'application/json'});
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a'); a.href=url; a.download='jadwal_xi_rpl.json'; a.click(); URL.revokeObjectURL(url);
+});
+
+
+document.getElementById('importBtn').addEventListener('click', ()=>document.getElementById('fileInput').click());
+document.getElementById('fileInput').addEventListener('change', e=>{
+const f = e.target.files[0]; if(!f) return;
+const reader = new FileReader();
+reader.onload = ()=>{ try{ scheduleData = JSON.parse(reader.result); saveLocal(); renderAll(); alert('Import sukses!'); }catch(err){ alert('Format JSON tidak valid'); }};
+reader.readAsText(f);
+});
+
+
+// init
+renderAll();
+
+
+// keyboard shortcut: press D to jump to day selector (demo)
+window.addEventListener('keydown', ev=>{ if(ev.key.toLowerCase()==='d') alert('Ctrl+klik hari untuk cepat pilih (demo)'); });
+
+
+</script>
+  </body>
+</html>
